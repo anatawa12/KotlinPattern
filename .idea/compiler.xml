@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="anatawa12Libs_main" target="1.8" />
+      <module name="anatawa12Libs_test" target="1.8" />
+      <module name="anatawa12Parser-gradle-kotlin-pattern-plugin_main" target="1.8" />
+      <module name="anatawa12Parser_main" target="1.8" />
+      <module name="anatawa12Parser_test" target="1.8" />
+      <module name="gradle-kotlin-pattern-plugin_main" target="1.8" />
+      <module name="gradle-kotlin-pattern-plugin_test" target="1.8" />
+      <module name="gradle-plugin_main" target="1.8" />
+      <module name="gradle-plugin_test" target="1.8" />
+      <module name="gradlePlugin_main" target="1.8" />
+      <module name="gradlePlugin_test" target="1.8" />
+      <module name="IdeaProjects-KotlinPattern_main" target="1.8" />
+      <module name="IdeaProjects-KotlinPattern_test" target="1.8" />
+      <module name="KotlinPattern_main" target="1.8" />
+      <module name="KotlinPattern_test" target="1.8" />
+      <module name="maven-kotlin-pattern-plugin_main" target="1.8" />
+      <module name="maven-kotlin-pattern-plugin_test" target="1.8" />
+      <module name="maven-plugin_main" target="1.8" />
+      <module name="maven-plugin_test" target="1.8" />
+      <module name="yokohama.anatawa12.lua52_main" target="1.6" />
+      <module name="yokohama.anatawa12.lua52_test" target="1.6" />
+      <module name="yokohama.anatawa12.parser1_main" target="1.7" />
+      <module name="yokohama.anatawa12.parser1_test" target="1.7" />
+      <module name="yokohama.anatawa12.parser_main" target="1.6" />
+      <module name="yokohama.anatawa12.parser_test" target="1.6" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -1,0 +1,2 @@
+rootProject.name = 'KotlinPattern'
+include("gradle-kotlin-pattern-plugin")

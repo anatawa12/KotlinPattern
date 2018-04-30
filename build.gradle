@@ -1,0 +1,52 @@
+group = 'com.anatawa12.parser'
+version = '0.0.1'
+
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'kotlin'
+apply plugin: 'kpt'
+
+buildscript {
+    ext.kotlin_version = '1.2.40'
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+            //maven { url = "https://anatawa12.github.io/mvn/" }
+            maven { url = "../mvn/" }
+        }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.anatawa12.parser:gradle-kotlin-pattern-plugin:0.0.1"
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://anatawa12.github.io/mvn/" }
+}
+sourceCompatibility = 1.8
+
+mainClassName = "com.anatawa12.parser.frontend.MainKt"
+
+dependencies {
+    compile group: 'asm', name: 'asm', version: '3.3.1'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: '0.22.3'
+
+    compile group: 'com.squareup', name: 'kotlinpoet', version: '0.6.0'
+    compile group: 'com.anatawa12.libs', name: 'anatawa12Libs', version: '0.0.1'
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+// for upload on anatawa12
+if (new File(rootDir, "../mvn/uplaoad.gradle").exists()){
+    apply from: "../mvn/uplaoad.gradle"
+}
