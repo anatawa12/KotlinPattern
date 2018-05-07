@@ -93,10 +93,10 @@ object ParserGenerator {
 	)
 	fun String.varName() = if(this !in keywords && "^[\\p{javaLetter}_][\\p{javaLetterOrDigit}_]*$".toRegex().matches(this)) this else "`$this`"
 
-	fun syntaxRunnner(syntaxDefections: SyntaxDefinitions, tokenFieldMap: NotNullMap<String, String>, unionMap: NotNullMap<String, String>, tokenIdMap: MutableMap<Token, Int>, zeroMores: MutableSet<String>, oneMores: MutableSet<String>, optionals: MutableSet<String>, withSeps: MutableSet<Pair<String, String>>): String {
+	fun syntaxRunnner(syntaxDefections: SyntaxDefinitions, tokenFieldMap: NotNullMap<String, String>, unionMap: NotNullMap<String, String>, zeroMores: MutableSet<String>, oneMores: MutableSet<String>, optionals: MutableSet<String>, withSeps: MutableSet<Pair<String, String>>): String {
 		@Language("kotlin")
 		val result = """
-			class SyntaxRunner(private val _lexer: ()-> Token, val generator: SyntaxAstGenerator) {
+			class SyntaxRunner(private val _lexer: ()-> Token, val generator: ISyntaxAstGenerator) {
 				private val stack: Deque<StateWithClosureAndEntry> = LinkedList()
 				private val _result = mutableListOf<Int>()
 				private var isRan = false
@@ -108,7 +108,7 @@ object ParserGenerator {
 				private fun read() {next = null}
 
 				init {
-					stack.push(StateWithClosureAndEntry(0, arrayOf(ClosureItem(-1, 0)), `${'$'}Union`(Token(TokenType.EOF, "", -1, -1))))
+					stack.push(StateWithClosureAndEntry(0, arrayOf(ClosureItem(0, 0)), `${'$'}Union`(Token(TokenType.EOF, "", -1, -1))))
 				}
 
 				private fun runAInsn (): Boolean{
@@ -126,20 +126,20 @@ object ParserGenerator {
 							val astList = mutableListOf<`${'$'}Union`>()
 							repeat(syntax.pattern.size) { astList += stack.pop().entry }
 							astList.reverse()
-							val ast = when(syntax.hash) {${syntaxDefections.asSequence().mapIndexed { i, it ->  it.ltoken to it }.toMapList().asSequence().map { it.value.withIndex() }.flatMap { it.asSequence() }.joinToString (separator = ""){ (i, it) -> """
-								"${tokenIdMap[it.ltoken]}:${it.pattern.joinToString(separator = ",") { tokenIdMap[it].toString() }}" -> `${'$'}Union`(generator.${it.ltoken.copy(name = "${it.ltoken.name}_$i").varName}(${it.pattern.withIndex().joinToString { (i, value) -> "astList[$i].${tokenFieldMap[value.name].varName()}" }}))"""}}
+							val ast = when(syntax.hash) {${syntaxDefections.asSequence().map { it.ltoken to it }.toMapList().asSequence().map { it.value.withIndex() }.flatMap { it.asSequence() }.joinToString (separator = ""){ (i, it) -> """
+								"${it.ltoken.resultId}:${it.pattern.joinToString(separator = ",") { it.resultId.toString() }}" -> `${'$'}Union`(generator.${"${it.ltoken.name}_$i".varName()}(${it.pattern.withIndex().joinToString { (i, value) -> "astList[$i].${tokenFieldMap[value.name].varName()}" }}))"""}}
 								// zeroMores${zeroMores.joinToString (separator = ""){ """
-								"${tokenIdMap[Token("$it*")]}:" -> `${'$'}Union`(mutableListOf<${unionMap[tokenFieldMap[it]]}>())
-								"${tokenIdMap[Token("$it*")]}:${tokenIdMap[Token("$it*")]},${tokenIdMap[Token(it)]}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it*"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
+								"${Token("$it*").resultId}:" -> `${'$'}Union`(mutableListOf<${unionMap[tokenFieldMap[it]]}>())
+								"${Token("$it*").resultId}:${Token("$it*").resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it*"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
 								// oneMores${oneMores.joinToString (separator = ""){ """
-								"${tokenIdMap[Token("$it+")]}:${tokenIdMap[Token(it)]}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it]}))
-								"${tokenIdMap[Token("$it+")]}:${tokenIdMap[Token("$it+")]},${tokenIdMap[Token(it)]}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it+"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
+								"${Token("$it+").resultId}:${Token(it).resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it]}))
+								"${Token("$it+").resultId}:${Token("$it+").resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it+"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
 								// optionals${optionals.joinToString (separator = ""){ """
-								"${tokenIdMap[Token("$it?")]}:" -> `${'$'}Union`(null as ${unionMap[tokenFieldMap["$it?"]]})
-								"${tokenIdMap[Token("$it?")]}:${tokenIdMap[Token(it)]}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it].varName()} as ${unionMap[tokenFieldMap["$it?"]]})"""}}
+								"${Token("$it?").resultId}:" -> `${'$'}Union`(null as ${unionMap[tokenFieldMap["$it?"]]})
+								"${Token("$it?").resultId}:${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it].varName()} as ${unionMap[tokenFieldMap["$it?"]]})"""}}
 								// withSeps${withSeps.joinToString (separator = ""){ (it, sep) -> """
-								"${tokenIdMap[Token("$it&$sep")]}:${tokenIdMap[Token(it)]}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it].varName()}))
-								"${tokenIdMap[Token("$it&$sep")]}:${tokenIdMap[Token("$it&$sep")]},${tokenIdMap[Token(sep)]},${tokenIdMap[Token(it)]}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it&$sep"].varName()}.also { it.add(astList[2].${tokenFieldMap[it].varName()}) })"""}}
+								"${Token("$it&$sep").resultId}:${Token(it).resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it].varName()}))
+								"${Token("$it&$sep").resultId}:${Token("$it&$sep").resultId},${Token(sep).resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it&$sep"].varName()}.also { it.add(astList[2].${tokenFieldMap[it].varName()}) })"""}}
 								else -> error("invalid Parser. Please create issue for Anatawa12Parser: ${'$'}syntax")
 							}
 							stack.push(StateWithClosureAndEntry((parsingTable[stack.peek().state][syntax.ltoken] as? Operation.Goto)?.to ?: error("invalid Parser. Please create issue for Anatawa12Parser"), insn.syntaxes, ast))
@@ -198,7 +198,7 @@ object ParserGenerator {
 		@Language("kotlin")
 		val result = """
 			private val skips: Set<TokenType> = setOf(${skips.joinToString(separator = ", "){ """
-				TokenType.$it""" }}
+				TokenType.${it.varName()}""" }}
 			)
 		""".trimIndent()
 		return result
@@ -207,16 +207,16 @@ object ParserGenerator {
 	fun parsingTable(parsingTable: ParsingTable) : String {
 		@Language("kotlin")
 		val result = """
-			private val parsingTable: ParsingTable = arrayOf(${parsingTable.withIndex().joinToString { (i, map) -> """
+			private val parsingTable: ParsingTable = arrayOf(${parsingTable.withIndex().joinToString { (i, _) -> """
 					makeMap$i()"""}}
 			)${parsingTable.withIndex().joinToString(separator = "") { (i, map) -> """
 			private fun makeMap$i() = mapOf(${map.entries.joinToString { (token, op) -> """
-							${token.literal} to ${when (op) {
-			is Operation.Shift -> "Operation.Shift(${op.to}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntaxId}, ${it.dotIndex})" }}))"
-			is Operation.Reduce -> "Operation.Reduce(${op.syntax}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntaxId}, ${it.dotIndex})" }}))"
+							${token.enumLiteral} to ${when (op) {
+			is Operation.Shift -> "Operation.Shift(${op.to}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntax.id}, ${it.dotIndex})" }}))"
+			is Operation.Reduce -> "Operation.Reduce(${op.syntax}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntax.id}, ${it.dotIndex})" }}))"
 			is Operation.Conflicted -> TODO()
 			Operation.Accept -> "Operation.Accept"
-			is Operation.Goto -> "Operation.Goto(${op.to}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntaxId}, ${it.dotIndex})" }}))"
+			is Operation.Goto -> "Operation.Goto(${op.to}, arrayOf(${op.syntaxes.joinToString { "ClosureItem(${it.syntax.id}, ${it.dotIndex})" }}))"
 		}}""" }}
 					)"""}}
 		""".trimIndent()
@@ -228,7 +228,7 @@ object ParserGenerator {
 		val result = """
 			val syntaxes = createSyntax()
 			fun createSyntax() = arrayOf<SyntaxDefinitionSection>(
-					${syntaxDefections.joinToString(separator = ", \n\t\t\t\t\t"){ "SyntaxDefinitionSection(${it.ltoken.literal}, listOf(${it.pattern.joinToString { it.literal }}))" }}
+					${syntaxDefections.joinToString(separator = ", \n\t\t\t\t\t"){ "SyntaxDefinitionSection(${it.ltoken.enumLiteral}, listOf(${it.pattern.joinToString { it.enumLiteral }}))" }}
 			)
 		""".trimIndent()
 		return result
@@ -237,19 +237,18 @@ object ParserGenerator {
 	fun syntaxAstGenerator(syntaxDefections: SyntaxDefinitions, typeMap: Map<String, String>) : String {
 		@Language("kotlin")
 		val result = """
-			interface SyntaxAstGenerator {${syntaxDefections.mapIndexed { i, it ->  it.ltoken to it }.toMapList().mapValues { it.value.withIndex() }.flatMap { it.value }.joinToString(separator = "") { (i, it) ->"""
-				fun ${it.ltoken.copy(name = "${it.ltoken.name}_$i").varName}(${it.pattern.withIndex().joinToString { (i, it) -> "${it.copy(name = "${it.name}_$i").varName}: ${typeMap[it.name] ?: "Token"}" }}): ${typeMap[it.ltoken.name]}"""}}
+			interface ISyntaxAstGenerator {${syntaxDefections.mapIndexed { i, it ->  it.ltoken to it }.toMapList().mapValues { it.value.withIndex() }.flatMap { it.value }.joinToString(separator = "") { (i, it) ->"""
+				fun ${"${it.ltoken.name}_$i".varName()}(${it.pattern.withIndex().joinToString { (i, it) -> "${"${it.name}_$i".varName()}: ${typeMap[it.name] ?: "Token"}" }}): ${typeMap[it.ltoken.name]}"""}}
 			}
 		""".trimIndent()
 		return result
 	}
 
-	fun token(symbols: MutableMap<Token, Int>) : String {
+	fun token(symbols: Set<Token>) : String {
 		@Language("kotlin")
 		val result = """
 			enum class TokenType(val data: String){
-				EOF("$"),
-				${symbols.toList().sortedBy { it.second }.joinToString(separator = ", \n\t\t\t\t"){ (it) -> "${it.varName}(\"${it.name.escape()}\")" }}
+				${symbols.sortedBy { it.resultId }.joinToString(separator = ", \n\t\t\t\t"){ "${it.name.varName()}(\"${it.name.escape()}\")" }}
 			}
 		""".trimIndent()
 		return result
@@ -308,6 +307,6 @@ ${imports.joinToString(separator = ""){"""
 		return result
 	}
 
-	private val Token.literal
-		get() = "TokenType.$varName"
+	private val Token.enumLiteral
+		get() = "TokenType.${name.varName()}"
 }

@@ -16,12 +16,12 @@ This generator's result is kotlin file.
 これは生成されファイルのパッケージを指定します。
 例えば`com.anatawa12.frontend.generated`などです。
 
-`@import ( <file-name> )` <br/>
+`@importFile ( <file-name> )` <br/>
 これは`<file-name>`から文法定義を読み込みます。
 `<file-name>` は文字列です。
 例えば`"./statements.kpt"`や`"./main.kpt"`などです。
 
-`@import <package>` <br/>
+`@importFile <package>` <br/>
 生成されファイルに`<package>`をインポートさせます
 例えば`kotlin.reflect.KProperty`や`kotlin.reflect.*`や`kotlin.reflect.KProperty as Property`などです
 
@@ -100,13 +100,13 @@ TopLebelObject
   ;
 
 importFile
-  : "@import" "(" string ")"
+  : "@importFile" "(" string ")"
   ;
 
 importPackage
-  : "@import" SimpleName{"."}
-  : "@import" SimpleName{"."} "." "*"
-  : "@import" SimpleName{"."} "as" SimpleName
+  : "@importFile" SimpleName{"."}
+  : "@importFile" SimpleName{"."} "." "*"
+  : "@importFile" SimpleName{"."} "as" SimpleName
   ;
 
 tokenName

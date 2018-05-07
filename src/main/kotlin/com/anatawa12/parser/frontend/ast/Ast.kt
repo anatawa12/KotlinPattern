@@ -6,7 +6,9 @@ package com.anatawa12.parser.frontend.ast
 
 data class Kpt(val tops: List<TopLevelObject>)
 
-sealed class TopLevelObject()
+sealed class TopLevelObject(){
+	lateinit var fromFile: String
+}
 
 data class Package(val packageName: String) : TopLevelObject()
 

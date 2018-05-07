@@ -20,13 +20,13 @@ This generator's result is kotlin file.
 This is to set package in generated source code.
 For example, `com.anatawa12.frontend.generated`
 
-`@import ( <file-name> )` <br/>
-This is to import file form `<file-name>`.
+`@importFile ( <file-name> )` <br/>
+This is to importFile file form `<file-name>`.
 `<file-name>` is a string literal. 
 For example, `"./statements.kpt"` and `"./main.kpt"`
 
-`@import <package>` <br/>
-This is to import `<package>` in generated source code.
+`@importFile <package>` <br/>
+This is to importFile `<package>` in generated source code.
 For example, `kotlin.reflect.KProperty`, `kotlin.reflect.*` and  `kotlin.reflect.KProperty as Property`
 
 ```
@@ -104,13 +104,13 @@ TopLebelObject
   ;
 
 importFile
-  : "@import" "(" string ")"
+  : "@importFile" "(" string ")"
   ;
 
 importPackage
-  : "@import" SimpleName{"."}
-  : "@import" SimpleName{"."} "." "*"
-  : "@import" SimpleName{"."} "as" SimpleName
+  : "@importFile" SimpleName{"."}
+  : "@importFile" SimpleName{"."} "." "*"
+  : "@importFile" SimpleName{"."} "as" SimpleName
   ;
 
 tokenName

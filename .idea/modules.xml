@@ -5,6 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinPattern.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinPattern.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinPattern_main.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinPattern_main.iml" group="KotlinPattern" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinPattern_test.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinPattern_test.iml" group="KotlinPattern" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/buildSrc.iml" filepath="$PROJECT_DIR$/.idea/modules/buildSrc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/buildSrc_main.iml" filepath="$PROJECT_DIR$/.idea/modules/buildSrc_main.iml" group="buildSrc" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/buildSrc_test.iml" filepath="$PROJECT_DIR$/.idea/modules/buildSrc_test.iml" group="buildSrc" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin.iml" filepath="$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin.iml" group="gradle-kotlin-pattern-plugin" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin_main.iml" filepath="$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin_main.iml" group="gradle-kotlin-pattern-plugin" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin_test.iml" filepath="$PROJECT_DIR$/.idea/modules/gradle-kotlin-pattern-plugin/gradle-kotlin-pattern-plugin_test.iml" group="gradle-kotlin-pattern-plugin" />
