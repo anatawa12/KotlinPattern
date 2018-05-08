@@ -91,13 +91,30 @@ object ParserGenerator {
 			"tailrec",
 			"vararg"
 	)
-	fun String.varName() = if(this !in keywords && "^[\\p{javaLetter}_][\\p{javaLetterOrDigit}_]*$".toRegex().matches(this)) this else "`$this`"
+	fun String.varName() = if(this !in keywords && "^[\\p{javaLetter}_][\\p{javaLetterOrDigit}_]*$".toRegex().matches(this)) this else {
+
+		val varName = replace("!", "!!")
+				.replace(".", "!d")//Dot
+				.replace(";", "!s")//Semi
+				.replace(":", "!c")//Colon
+				.replace("[", "!ls")//Left Square bracket
+				.replace("]", "!rs")//Right Square bracket
+				.replace("<", "!la")//Left Angle bracket
+				.replace(">", "!ra")//Right Angle bracket
+				.replace("\\", "!h")//backslasH
+				.replace("/", "!f")//Forward slash
+				.replace("\b", "!b")
+				.replace("\n", "!n")
+				.replace("\r", "!r")
+				.replace("\t", "!t")
+		"`$varName`"
+	}
 
 	fun syntaxRunnner(syntaxDefections: SyntaxDefinitions, tokenFieldMap: NotNullMap<String, String>, unionMap: NotNullMap<String, String>, zeroMores: MutableSet<String>, oneMores: MutableSet<String>, optionals: MutableSet<String>, withSeps: MutableSet<Pair<String, String>>): String {
 		@Language("kotlin")
 		val result = """
 			class SyntaxRunner(private val _lexer: ()-> Token, val generator: ISyntaxAstGenerator) {
-				private val stack: Deque<StateWithClosureAndEntry> = LinkedList()
+				private val stack: MutableList<StateWithClosureAndEntry> = mutableListOf()
 				private val _result = mutableListOf<Int>()
 				private var isRan = false
 				private var next: Token? = null
@@ -106,6 +123,10 @@ object ParserGenerator {
 					return next!!.type
 				}
 				private fun read() {next = null}
+
+				private fun <T>MutableList<T>.push(e: T) { add(e) }
+				private fun <T>MutableList<T>.pop() = removeAt(lastIndex)
+				private fun <T>MutableList<T>.peek() = last()
 
 				init {
 					stack.push(StateWithClosureAndEntry(0, arrayOf(ClosureItem(0, 0)), `${'$'}Union`(Token(TokenType.EOF, "", -1, -1))))
@@ -262,7 +283,6 @@ ${if (packageName != ""){"""
 			package $packageName"""}else{""}}
 ${imports.joinToString(separator = ""){"""
 			import $it"""}}
-			import java.util.*
 
 			typealias ParsingTable = Array<Map<TokenType, Operation>>
 
