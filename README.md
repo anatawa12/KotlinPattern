@@ -56,7 +56,7 @@ set the output file `<file>`
 set the input file `<file>`
 ##### `-p`, `--package-root`
 Output `Parser.kt` at the position matching the input package, with output as a directory.
-##### `-f`, `--file-path`
+##### `-f`, `--files-path`
 Output it as it is on the output. This is the default behavior.
 
 ### make ast generator

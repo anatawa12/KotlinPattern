@@ -4,10 +4,10 @@ version = '0.0.2'
 apply plugin: 'application'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
-apply plugin: 'kpt'
+//apply plugin: 'kpt'
 
 buildscript {
-    ext.kotlin_version = '1.2.41'
+    ext.kotlin_version = '1.3.0'
 
     repositories {
         mavenCentral()
@@ -17,7 +17,7 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.anatawa12.parser:gradle-kotlin-pattern-plugin:0.0.2"
+        //classpath "com.anatawa12.parser:gradle-kotlin-pattern-plugin:0.0.2"
     }
 }
 
@@ -32,11 +32,11 @@ mainClassName = "com.anatawa12.parser.frontend.MainKt"
 dependencies {
     compile group: 'asm', name: 'asm', version: '3.3.1'
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '0.22.5'
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: '0.22.5'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.0.1'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: '1.0.1'
 
-    compile 'com.anatawa12.libs:anatawa12Libs:0.0.2'
-    compile 'com.anatawa12.libs:anatawa12Libs:0.0.2:sources'
+    compile 'com.anatawa12:anatawa12CoreLibs:0.0.2'
+    compile 'com.anatawa12:anatawa12CoreLibs:0.0.2:sources'
 }
 
 kotlin {

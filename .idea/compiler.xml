@@ -9,6 +9,8 @@
       <module name="anatawa12Parser_test" target="1.8" />
       <module name="buildSrc_main" target="1.8" />
       <module name="buildSrc_test" target="1.8" />
+      <module name="com.anatawa12.parser_buildSrc_main" target="1.8" />
+      <module name="com.anatawa12.parser_buildSrc_test" target="1.8" />
       <module name="gradle-kotlin-pattern-plugin_main" target="1.8" />
       <module name="gradle-kotlin-pattern-plugin_test" target="1.8" />
       <module name="gradle-plugin_main" target="1.8" />

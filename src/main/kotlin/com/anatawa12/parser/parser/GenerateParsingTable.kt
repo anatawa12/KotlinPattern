@@ -1,6 +1,6 @@
-package com.anatawa12.parser1.parser
+package com.anatawa12.parser.parser
 
-import com.anatawa12.parser1.frontend.KotlinPatternArguments
+import com.anatawa12.parser.KotlinPatternArguments
 
 /**
  * Created by anatawa12 on 2018/04/22.

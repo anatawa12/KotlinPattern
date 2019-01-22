@@ -1,12 +1,14 @@
-package com.anatawa12.parser.generator
+package com.anatawa12.parser
 
 import com.anatawa12.libs.collections.NotNullMap
 import com.anatawa12.libs.collections.toMapList
 import com.anatawa12.libs.util.escape
 import com.anatawa12.libs.util.plusAssign
-import com.anatawa12.parser.frontend.KotlinPatternArguments
-import com.anatawa12.parser.frontend.OutputType
-import com.anatawa12.parser.frontend.ast.*
+import com.anatawa12.parser.ast.PatternElementOneMoreExp
+import com.anatawa12.parser.ast.PatternElementOptionalExp
+import com.anatawa12.parser.ast.PatternElementWithSepExp
+import com.anatawa12.parser.ast.PatternElementZeroMoreExp
+import com.anatawa12.parser.ast.*
 import com.anatawa12.parser.parser.*
 import org.intellij.lang.annotations.Language
 import java.io.File

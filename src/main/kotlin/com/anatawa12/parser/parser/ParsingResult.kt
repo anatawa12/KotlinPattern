@@ -1,4 +1,4 @@
-package com.anatawa12.parser1.parser
+package com.anatawa12.parser.parser
 
 import java.util.*
 import kotlin.properties.Delegates

@@ -1,9 +1,8 @@
-package com.anatawa12.parser.frontend
+package com.anatawa12.parser
 
 import com.anatawa12.libs.collections.*
-import com.anatawa12.parser.KotlinGenerator
-import com.anatawa12.parser.frontend.ast.*
-import com.anatawa12.parser.frontend.generated.SyntaxRunner
+import com.anatawa12.parser.ast.*
+import com.anatawa12.parser.generated.SyntaxRunner
 import com.anatawa12.parser.parser.*
 import java.io.File
 import kotlin.system.exitProcess

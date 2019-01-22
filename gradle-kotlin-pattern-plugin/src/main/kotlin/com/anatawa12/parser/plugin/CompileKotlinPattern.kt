@@ -1,8 +1,8 @@
 package com.anatawa12.parser.plugin
 
-import com.anatawa12.parser.frontend.KotlinPatternArguments
-import com.anatawa12.parser.frontend.OutputType
-import com.anatawa12.parser.frontend.kotlinPatten
+import com.anatawa12.parser.KotlinPatternArguments
+import com.anatawa12.parser.OutputType
+import com.anatawa12.parser.kotlinPatten
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction

@@ -1,8 +1,8 @@
-package com.anatawa12.parser1.parser
+package com.anatawa12.parser.parser
 
 import com.anatawa12.libs.collections.InitMap
-import com.anatawa12.parser1.frontend.ast.PatternElement
-import com.anatawa12.parser1.frontend.ast.TokenElement
+import com.anatawa12.parser.ast.PatternElement
+import com.anatawa12.parser.ast.TokenElement
 import kotlin.properties.Delegates
 
 /**

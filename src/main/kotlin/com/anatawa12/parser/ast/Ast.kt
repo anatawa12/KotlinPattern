@@ -1,4 +1,4 @@
-package com.anatawa12.parser.frontend.ast
+package com.anatawa12.parser.ast
 
 import com.anatawa12.parser.parser.*
 

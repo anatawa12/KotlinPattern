@@ -1,6 +1,6 @@
-package com.anatawa12.parser.frontend
+package com.anatawa12.parser
 
-import com.anatawa12.parser.frontend.generated.SyntaxRunner
+import com.anatawa12.parser.generated.SyntaxRunner
 import com.anatawa12.parser.parser.ReduceReduceConflictException
 import kotlinx.coroutines.runBlocking
 import java.io.File

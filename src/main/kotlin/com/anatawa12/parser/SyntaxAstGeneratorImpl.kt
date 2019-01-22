@@ -1,8 +1,8 @@
-package com.anatawa12.parser.frontend
+package com.anatawa12.parser
 
-import com.anatawa12.parser.frontend.ast.*
-import com.anatawa12.parser.frontend.generated.ISyntaxAstGenerator
-import com.anatawa12.parser.frontend.generated.Token
+import com.anatawa12.parser.ast.*
+import com.anatawa12.parser.generated.ISyntaxAstGenerator
+import com.anatawa12.parser.generated.Token
 
 /**
  * Created by anatawa12 on 2018/05/03.
@@ -40,9 +40,11 @@ object SyntaxAstGeneratorImpl : ISyntaxAstGenerator {
 
 	override fun patType_0(arg1: String): String = arg1
 
-	override fun pattern_0(arg0: Token, arg1: String?, arg4: List<PatternElements>): TopLevelObject = Pattern(arg1?:"Unit", arg0.data, arg4)
+	override fun pattern_0(arg0: Token, arg1: String?, arg4: List<PatternElements>): TopLevelObject = Pattern(arg1
+			?: "Unit", arg0.data, arg4)
 
-	override fun pattern_1(arg0: Token, arg1: String?, arg3: List<PatternElements>): TopLevelObject  = Pattern(arg1?:"Unit", arg0.data, arg3)
+	override fun pattern_1(arg0: Token, arg1: String?, arg3: List<PatternElements>): TopLevelObject = Pattern(arg1
+			?: "Unit", arg0.data, arg3)
 
 	override fun orPatterns_0(arg0: MutableList<PatternElements>): List<PatternElements> = arg0
 
@@ -60,15 +62,15 @@ object SyntaxAstGeneratorImpl : ISyntaxAstGenerator {
 
 	override fun PatternExp_4(arg0: PatternElement, arg2: PatternElement): PatternExp = PatternElementWithSepExp(arg0, arg2)
 
-	override fun PatternExp_5(arg0: Token, arg1: PatternElement): PatternExp = PatternElementExp(arg1, true)
+	override fun PatternExp_5(arg1: PatternElement): PatternExp = PatternElementExp(arg1, true)
 
-	override fun PatternExp_6(arg0: Token, arg1: PatternElement): PatternExp = PatternElementZeroMoreExp(arg1, true)
+	override fun PatternExp_6(arg1: PatternElement): PatternExp = PatternElementZeroMoreExp(arg1, true)
 
-	override fun PatternExp_7(arg0: Token, arg1: PatternElement): PatternExp = PatternElementOneMoreExp(arg1, true)
+	override fun PatternExp_7(arg1: PatternElement): PatternExp = PatternElementOneMoreExp(arg1, true)
 
-	override fun PatternExp_8(arg0: Token, arg1: PatternElement): PatternExp = PatternElementOptionalExp(arg1, true)
+	override fun PatternExp_8(arg1: PatternElement): PatternExp = PatternElementOptionalExp(arg1, true)
 
-	override fun PatternExp_9(arg0: Token, arg1: PatternElement, arg3: PatternElement): PatternExp = PatternElementWithSepExp(arg1, arg3, true)
+	override fun PatternExp_9(arg1: PatternElement, arg3: PatternElement): PatternExp = PatternElementWithSepExp(arg1, arg3, true)
 
 	override fun PatternElement_0(arg0: Token): PatternElement = StringElement(arg0.data)
 

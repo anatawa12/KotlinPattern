@@ -1,9 +1,9 @@
-package com.anatawa12.parser1.parser
+package com.anatawa12.parser.parser
 
 import com.anatawa12.libs.collections.InitMap
 import com.anatawa12.libs.collections.toMapList
 import com.anatawa12.libs.coroutines.coroutineScope
-import com.anatawa12.parser1.frontend.KotlinPatternArguments
+import com.anatawa12.parser.KotlinPatternArguments
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -153,16 +153,14 @@ fun generateFirstMap(syntaxDefinitions: SyntaxDefinitions, nullSet: Set<Token>, 
 
 fun setEveryTokenAndDefinitionId(defections: SyntaxDefinitions): Set<Token> {
 	var nextTokenId = 0
-	var nextDfinitionId = 0
+	val nonTerminals = mutableSetOf<Token>()
 	val tokenMap = InitMap<Token, Int> { nextTokenId++ }
 	defections.forEach {
-		it.id = nextDfinitionId++
-		val id = tokenMap[it.ltoken]
-		it.ltoken.resultId = id
-		it.ltoken.runTimeId = id + 1
+		nonTerminals.add(it.ltoken)
 	}
 	defections.forEach { defection ->
-		defection.pattern.forEach {
+		defection.pattern.forEach patterns@{
+			if (it in nonTerminals) return@patterns
 			val id = tokenMap[it]
 			it.resultId = id
 			it.runTimeId = id + 1
@@ -171,6 +169,13 @@ fun setEveryTokenAndDefinitionId(defections: SyntaxDefinitions): Set<Token> {
 	val id = tokenMap[Token.Eof]
 	Token.Eof.resultId = id
 	Token.Eof.runTimeId = id + 1
+	var nextDfinitionId = 0
+	defections.forEach {
+		it.id = nextDfinitionId++
+		val id = tokenMap[it.ltoken]
+		it.ltoken.resultId = id
+		it.ltoken.runTimeId = id + 1
+	}
 	return tokenMap.keys
 }
 
