@@ -3,14 +3,13 @@ package com.anatawa12.parser.frontend
 import com.anatawa12.libs.util.escape
 import com.anatawa12.parser.frontend.generated.Token
 import com.anatawa12.parser.frontend.generated.TokenType
-import kotlin.coroutines.experimental.buildSequence
 
 /**
  * Created by anatawa12 on 2018/04/15.
  */
 class Lexer(val input: CharSequence) {
 
-	private val itr = buildSequence<Token> {
+	private val itr = sequence<Token> {
 		var line = 0
 		var column = 0
 		var tokenLine = 0
@@ -28,8 +27,8 @@ class Lexer(val input: CharSequence) {
 				when (state) {
 					State.Ready -> {
 						when (c) {
-							'(' -> yield(Token(TokenType.`"("`, "(", line, column))
-							')' -> yield(Token(TokenType.`")"`, ")", line, column))
+							'(' -> yield(Token(TokenType.LP, "(", line, column))
+							')' -> yield(Token(TokenType.RP, ")", line, column))
 							'{' -> yield(Token(TokenType.`"{"`, "{", line, column))
 							'}' -> yield(Token(TokenType.`"}"`, "}", line, column))
 							'=' -> yield(Token(TokenType.`"="`, "=", line, column))
@@ -39,10 +38,10 @@ class Lexer(val input: CharSequence) {
 							'+' -> yield(Token(TokenType.`"+"`, "+", line, column))
 							'?' -> yield(Token(TokenType.`"?"`, "?", line, column))
 							'|' -> yield(Token(TokenType.`"|"`, "|", line, column))
-							'.' -> yield(Token(TokenType.`"!d"`, ".", line, column))
+							'.' -> yield(Token(TokenType.DOT, ".", line, column))
 							',' -> yield(Token(TokenType.`","`, ",", line, column))
-							'<' -> yield(Token(TokenType.`"!la"`, "<", line, column))
-							'>' -> yield(Token(TokenType.`"!ra"`, ">", line, column))
+							'<' -> yield(Token(TokenType.LT, "<", line, column))
+							'>' -> yield(Token(TokenType.GT, ">", line, column))
 							'\n' -> yield(Token(TokenType.LF, "\n", line, column))
 							'\r' -> yield(Token(TokenType.LF, "\r", line, column))
 							'"' -> {
@@ -129,9 +128,11 @@ class Lexer(val input: CharSequence) {
 						} else {
 							val value = stringBuilder.toString()
 							when (value) {
-								"@package" -> yield(Token(TokenType.`"@package"`, value, tokenLine, tokenColumn))
-								"@import" -> yield(Token(TokenType.`"@import"`, value, tokenLine, tokenColumn))
-								"@skip" -> yield(Token(TokenType.`"@skip"`, value, tokenLine, tokenColumn))
+								"@package" -> yield(Token(TokenType.AT_PACKAGE, value, tokenLine, tokenColumn))
+								"@import" -> yield(Token(TokenType.AT_IMPORT, value, tokenLine, tokenColumn))
+								"@skip" -> yield(Token(TokenType.AT_SKIP, value, tokenLine, tokenColumn))
+								"@name" -> yield(Token(TokenType.AT_NAME, value, tokenLine, tokenColumn))
+								"@ignore" -> yield(Token(TokenType.AT_IGNORE, value, tokenLine, tokenColumn))
 								else -> error("invalid token : ${value.escape()} at line: $line column: $column")
 							}
 							stringBuilder = StringBuilder()

@@ -3,16 +3,69 @@ package com.anatawa12.parser.generator
 import com.anatawa12.libs.collections.NotNullMap
 import com.anatawa12.libs.collections.toMapList
 import com.anatawa12.libs.util.escape
-import com.anatawa12.parser.parser.Operation
-import com.anatawa12.parser.parser.ParsingTable
-import com.anatawa12.parser.parser.SyntaxDefinitions
-import com.anatawa12.parser.parser.Token
+import com.anatawa12.libs.util.plusAssign
+import com.anatawa12.parser.frontend.KotlinPatternArguments
+import com.anatawa12.parser.frontend.OutputType
+import com.anatawa12.parser.frontend.ast.*
+import com.anatawa12.parser.parser.*
 import org.intellij.lang.annotations.Language
+import java.io.File
 
 /**
  * Created by anatawa12 on 2018/04/15.
  */
-object ParserGenerator {
+object KotlinGenerator {
+	fun generates(
+			packageName: String,
+			imports: MutableSet<String>,
+			symbols: Set<Token>,
+			skips: MutableSet<Token>,
+			syntaxDefections: SyntaxDefinitions,
+			inputSyntaxDefinitions: MutableList<SyntaxDefinitionSection>,
+			typeMap: Map<Token, String>,
+			tokenFieldMap: NotNullMap<Token, String>,
+			unionMap: NotNullMap<String, String>,
+			zeroMores: MutableSet<PatternElementZeroMoreExp>,
+			oneMores: MutableSet<PatternElementOneMoreExp>,
+			optionals: MutableSet<PatternElementOptionalExp>,
+			withSeps: MutableSet<PatternElementWithSepExp>,
+			parsingTable: ParsingTable,
+			args: KotlinPatternArguments) {
+
+		val builder = StringBuilder()
+		builder += head(packageName, imports)
+		builder += '\n'
+		builder += token(symbols)
+		builder += '\n'
+		builder += skips(skips)
+		builder += '\n'
+		builder += syntax(syntaxDefections)
+		builder += '\n'
+		builder += syntaxAstGenerator(inputSyntaxDefinitions, typeMap)
+		builder += '\n'
+		builder += syntaxRunnner(inputSyntaxDefinitions, tokenFieldMap, unionMap, zeroMores, oneMores, optionals, withSeps)
+		builder += '\n'
+		builder += parsingTable(parsingTable)
+		builder += '\n'
+
+		val src = builder.toString()
+
+		when (args.outPutType) {
+			OutputType.PackageRootDir -> {
+				val dir = File(args.output, packageName.replace('.', File.separatorChar)).also { it.mkdirs() }
+				File(dir, "Parser.kt").outputStream().write(src.toByteArray())
+			}
+			OutputType.FilePath -> {
+				args.output.mkdirs()
+				val parsingFile = File(args.output, "Parser.kt")
+				if (!parsingFile.exists()) {
+					parsingFile.createNewFile()
+				}
+				parsingFile.outputStream().write(src.toByteArray())
+			}
+		}
+	}
+
 	private val keywords = listOf(
 			"as",
 			"as?",
@@ -110,7 +163,7 @@ object ParserGenerator {
 		"`$varName`"
 	}
 
-	fun syntaxRunnner(syntaxDefections: SyntaxDefinitions, tokenFieldMap: NotNullMap<String, String>, unionMap: NotNullMap<String, String>, zeroMores: MutableSet<String>, oneMores: MutableSet<String>, optionals: MutableSet<String>, withSeps: MutableSet<Pair<String, String>>): String {
+	fun syntaxRunnner(syntaxDefections: SyntaxDefinitions, tokenFieldMap: NotNullMap<Token, String>, unionMap: NotNullMap<String, String>, zeroMores: MutableSet<PatternElementZeroMoreExp>, oneMores: MutableSet<PatternElementOneMoreExp>, optionals: MutableSet<PatternElementOptionalExp>, withSeps: MutableSet<PatternElementWithSepExp>): String {
 		@Language("kotlin")
 		val result = """
 			class SyntaxRunner(private val _lexer: ()-> Token, val generator: ISyntaxAstGenerator) {
@@ -129,7 +182,7 @@ object ParserGenerator {
 				private fun <T>MutableList<T>.peek() = last()
 
 				init {
-					stack.push(StateWithClosureAndEntry(0, arrayOf(ClosureItem(0, 0)), `${'$'}Union`(Token(TokenType.EOF, "", -1, -1))))
+					stack.push(StateWithClosureAndEntry(0, arrayOf(ClosureItem(0, 0)), `${'$'}Union`(Token(${EofToken.enumLiteral}, "", -1, -1))))
 				}
 
 				private fun runAInsn (): Boolean{
@@ -148,25 +201,25 @@ object ParserGenerator {
 							repeat(syntax.pattern.size) { astList += stack.pop().entry }
 							astList.reverse()
 							val ast = when(syntax.hash) {${syntaxDefections.asSequence().map { it.ltoken to it }.toMapList().asSequence().map { it.value.withIndex() }.flatMap { it.asSequence() }.joinToString (separator = ""){ (i, it) -> """
-								"${it.ltoken.resultId}:${it.pattern.joinToString(separator = ",") { it.resultId.toString() }}" -> `${'$'}Union`(generator.${"${it.ltoken.name}_$i".varName()}(${it.pattern.withIndex().joinToString { (i, value) -> "astList[$i].${tokenFieldMap[value.name].varName()}" }}))"""}}
+								"${it.ltoken.resultId}:${it.pattern.joinToString(separator = ",") { it.resultId.toString() }}" -> `${'$'}Union`(generator.${"${it.ltoken.viewName}_$i".varName()}(${it.pattern.withIndex().filterNot { (_, v) -> v.isIgnore }.joinToString { (i, value) -> "astList[$i].${tokenFieldMap[value].varName()}" }}))"""}}
 								// zeroMores${zeroMores.joinToString (separator = ""){ """
-								"${Token("$it*").resultId}:" -> `${'$'}Union`(mutableListOf<${unionMap[tokenFieldMap[it]]}>())
-								"${Token("$it*").resultId}:${Token("$it*").resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it*"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
+								"${it.toToken().resultId}:" -> `${'$'}Union`(mutableListOf<${unionMap[tokenFieldMap[it.elem.toToken()]]}>())
+								"${it.toToken().resultId}:${it.toToken().resultId},${it.elem.toToken().resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it.toToken()].varName()}.also { it.add(astList[1].${tokenFieldMap[it.elem.toToken()].varName()}) })"""}}
 								// oneMores${oneMores.joinToString (separator = ""){ """
-								"${Token("$it+").resultId}:${Token(it).resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it]}))
-								"${Token("$it+").resultId}:${Token("$it+").resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it+"].varName()}.also { it.add(astList[1].${tokenFieldMap[it].varName()}) })"""}}
+								"${it.toToken().resultId}:${it.elem.toToken().resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it.elem.toToken()].varName()}))
+								"${it.toToken().resultId}:${it.toToken().resultId},${it.elem.toToken().resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it.toToken()].varName()}.also { it.add(astList[1].${tokenFieldMap[it.elem.toToken()].varName()}) })"""}}
 								// optionals${optionals.joinToString (separator = ""){ """
-								"${Token("$it?").resultId}:" -> `${'$'}Union`(null as ${unionMap[tokenFieldMap["$it?"]]})
-								"${Token("$it?").resultId}:${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it].varName()} as ${unionMap[tokenFieldMap["$it?"]]})"""}}
-								// withSeps${withSeps.joinToString (separator = ""){ (it, sep) -> """
-								"${Token("$it&$sep").resultId}:${Token(it).resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it].varName()}))
-								"${Token("$it&$sep").resultId}:${Token("$it&$sep").resultId},${Token(sep).resultId},${Token(it).resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap["$it&$sep"].varName()}.also { it.add(astList[2].${tokenFieldMap[it].varName()}) })"""}}
-								else -> error("invalid Parser. Please create issue for Anatawa12Parser: ${'$'}syntax")
+								"${it.toToken().resultId}:" -> `${'$'}Union`(null as ${unionMap[tokenFieldMap[it.toToken()]]})
+								"${it.toToken().resultId}:${it.elem.toToken().resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it.elem.toToken()].varName()} as ${unionMap[tokenFieldMap[it.toToken()]]})"""}}
+								// withSeps${withSeps.joinToString (separator = ""){ it -> """
+								"${it.toToken().resultId}:${it.elem.toToken().resultId}" -> `${'$'}Union`(mutableListOf(astList[0].${tokenFieldMap[it.elem.toToken()].varName()}))
+								"${it.toToken().resultId}:${it.toToken().resultId},${it.sep.toToken().resultId},${it.elem.toToken().resultId}" -> `${'$'}Union`(astList[0].${tokenFieldMap[it.toToken()].varName()}.also { it.add(astList[2].${tokenFieldMap[it.elem.toToken()].varName()}) })"""}}
+								else -> error("invalid Parser. Please create issue for Anatawa12Parser: ${'$'}{syntax.debug()}")
 							}
 							stack.push(StateWithClosureAndEntry((parsingTable[stack.peek().state][syntax.ltoken] as? Operation.Goto)?.to ?: error("invalid Parser. Please create issue for Anatawa12Parser"), insn.syntaxes, ast))
 						}
 						Operation.Accept -> {
-							__result = stack.pop().entry.${tokenFieldMap[syntaxDefections.first().ltoken.name].varName()}
+							__result = stack.pop().entry.${tokenFieldMap[syntaxDefections.first().ltoken].varName()}
 							return true
 						}
 						is Operation.Goto -> error("invalid Parser. Please create issue for Anatawa12Parser")
@@ -189,8 +242,8 @@ object ParserGenerator {
 					isRan = true
 				}
 
-				private lateinit var __result: ${unionMap[tokenFieldMap[syntaxDefections.first().ltoken.name]]}
-				val result: ${unionMap[tokenFieldMap[syntaxDefections.first().ltoken.name]]}
+				private lateinit var __result: ${unionMap[tokenFieldMap[syntaxDefections.first().ltoken]]}
+				val result: ${unionMap[tokenFieldMap[syntaxDefections.first().ltoken]]}
 					get() {
 						if (!isRan) error("this did't run.")
 						return __result
@@ -207,7 +260,7 @@ object ParserGenerator {
 					companion object {${
 			unionMap.entries.joinToString(separator = "") {(name, type) -> """
 						@JvmName("invoke_$name")
-						operator fun invoke(${"_$name".varName()}: $type) = `${'$'}Union`(${"_$name".varName()}, UnionType.${"_$name".varName()})""" }}
+						operator fun invoke(value: $type) = `${'$'}Union`(value, UnionType.${"_$name".varName()})""" }}
 					}
 				}
 			}
@@ -215,11 +268,11 @@ object ParserGenerator {
 		return result
 	}
 
-	fun skips(skips: Set<String>) : String {
+	fun skips(skips: MutableSet<Token>) : String {
 		@Language("kotlin")
 		val result = """
 			private val skips: Set<TokenType> = setOf(${skips.joinToString(separator = ", "){ """
-				TokenType.${it.varName()}""" }}
+				${it.enumLiteral}""" }}
 			)
 		""".trimIndent()
 		return result
@@ -255,11 +308,11 @@ object ParserGenerator {
 		return result
 	}
 
-	fun syntaxAstGenerator(syntaxDefections: SyntaxDefinitions, typeMap: Map<String, String>) : String {
+	fun syntaxAstGenerator(syntaxDefections: SyntaxDefinitions, typeMap: Map<Token, String>) : String {
 		@Language("kotlin")
 		val result = """
 			interface ISyntaxAstGenerator {${syntaxDefections.mapIndexed { i, it ->  it.ltoken to it }.toMapList().mapValues { it.value.withIndex() }.flatMap { it.value }.joinToString(separator = "") { (i, it) ->"""
-				fun ${"${it.ltoken.name}_$i".varName()}(${it.pattern.withIndex().joinToString { (i, it) -> "${"${it.name}_$i".varName()}: ${typeMap[it.name] ?: "Token"}" }}): ${typeMap[it.ltoken.name]}"""}}
+				fun ${"${it.ltoken.name}_$i".varName()}(${it.pattern.withIndex().filterNot { (_, v) -> v.isIgnore }.joinToString { (i, it) -> "${"arg$i".varName()}: ${typeMap[it] ?: "Token"}" }}): ${typeMap[it.ltoken]}"""}}
 			}
 		""".trimIndent()
 		return result
@@ -269,7 +322,7 @@ object ParserGenerator {
 		@Language("kotlin")
 		val result = """
 			enum class TokenType(val data: String){
-				${symbols.sortedBy { it.resultId }.joinToString(separator = ", \n\t\t\t\t"){ "${it.name.varName()}(\"${it.name.escape()}\")" }}
+				${symbols.sortedBy { it.resultId }.joinToString(separator = ", \n\t\t\t\t"){ "${it.viewName.varName()}(\"${it.name.escape()}\")" }}
 			}
 		""".trimIndent()
 		return result
@@ -319,6 +372,10 @@ ${imports.joinToString(separator = ""){"""
 					return "${'$'}{ltoken.data} -> ${'$'}{pattern.joinToString(separator = " "){"\"${'$'}{it.data}\""}}"
 				}
 
+				fun debug(): String {
+					return "${'$'}hash is ${'$'}{toString()}"
+				}
+
 				val hash = "${'$'}{ltoken.ordinal}:${'$'}{pattern.joinToString(separator = ",") { "${'$'}{it.ordinal}" }}"
 			}
 
@@ -328,5 +385,5 @@ ${imports.joinToString(separator = ""){"""
 	}
 
 	private val Token.enumLiteral
-		get() = "TokenType.${name.varName()}"
+		get() = "TokenType.${viewName.varName()}"
 }

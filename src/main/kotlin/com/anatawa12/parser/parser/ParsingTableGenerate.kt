@@ -1,14 +1,13 @@
-package com.anatawa12.parser.parser
+package com.anatawa12.parser1.parser
 
 import com.anatawa12.libs.collections.InitMap
-import com.anatawa12.libs.collections.synchronized.synchronizedMap
 import com.anatawa12.libs.collections.toMapList
-import com.anatawa12.libs.delegation.StaticValue
-import com.anatawa12.parser.frontend.KotlinPatternArguments
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
-import kotlin.coroutines.experimental.coroutineContext
+import com.anatawa12.libs.coroutines.coroutineScope
+import com.anatawa12.parser1.frontend.KotlinPatternArguments
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.coroutineContext
 import kotlin.properties.Delegates
 
 /**
@@ -155,34 +154,34 @@ fun generateFirstMap(syntaxDefinitions: SyntaxDefinitions, nullSet: Set<Token>, 
 fun setEveryTokenAndDefinitionId(defections: SyntaxDefinitions): Set<Token> {
 	var nextTokenId = 0
 	var nextDfinitionId = 0
-	var setType = TokenType.NonTerminal
-	val tokenMap = InitMap<Token, Pair<Int, TokenType>> { nextTokenId++ to setType }
+	val tokenMap = InitMap<Token, Int> { nextTokenId++ }
 	defections.forEach {
 		it.id = nextDfinitionId++
-		val (id, type) = tokenMap[it.ltoken]
+		val id = tokenMap[it.ltoken]
 		it.ltoken.resultId = id
 		it.ltoken.runTimeId = id + 1
-		it.ltoken.type = type
 	}
-	setType = TokenType.Terminal
 	defections.forEach { defection ->
 		defection.pattern.forEach {
-			val (id, type) = tokenMap[it]
+			val id = tokenMap[it]
 			it.resultId = id
 			it.runTimeId = id + 1
-			it.type = type
 		}
 	}
-	val (id, type) = tokenMap[Token.Eof]
+	val id = tokenMap[Token.Eof]
 	Token.Eof.resultId = id
 	Token.Eof.runTimeId = id + 1
-	Token.Eof.type = type
-	Token.map = tokenMap.toMap().synchronizedMap()
 	return tokenMap.keys
 }
 
 enum class TokenType {
+	/**
+	 * 終端記号
+	 */
 	Terminal,
+	/**
+	 * 非終端記号
+	 */
 	NonTerminal
 }
 
@@ -283,20 +282,19 @@ suspend fun generates(grammarDefinition: GrammarDefinition, args: KotlinPatternA
 
 	val mutex = Mutex()
 
-	launch { generateDfaNode({}, setOf(initClosureItem), dfaNodeList, dfaIndexMap, syntaxDB, firstSet, mutex) }.join()
+	coroutineScope().launch { generateDfaNode({}, setOf(initClosureItem), dfaNodeList, dfaIndexMap, syntaxDB, firstSet, mutex) }.join()
 	println()
 	println("DFA node count: ${dfaNodeList.size}")
 	return ParsingResult(generateParsingTable(dfaNodeList, args), tokenSet, syntaxDefinitions)
 }
 
+var printSharpCount = 0
+
 fun printSharp() {
-	var count by StaticValue(0)
 	print("#")
-	//KT-14833
-	@Suppress("SelfAssignment")
-	count = count + 1
-	if (count == 100) {
-		count = 0
+	printSharpCount++
+	if (printSharpCount == 100) {
+		printSharpCount = 0
 		println()
 	}
 }
@@ -322,7 +320,7 @@ suspend fun generateDfaNode(setter: (DFANode) -> Unit, itemSet: Set<ClosureItem>
 	if (isCreate) {
 		val map = createNextClosureSet(closureSet)
 		for ((token, set) in map) {
-			launch(coroutineContext) { generateDfaNode({ nextNode[token] = it }, set, dfaNodeList, dfaIndexMap, syntaxDB, firstSet, mutex) }
+			coroutineScope().launch(coroutineContext) { generateDfaNode({ nextNode[token] = it }, set, dfaNodeList, dfaIndexMap, syntaxDB, firstSet, mutex) }
 		}
 	}
 }
