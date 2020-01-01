@@ -1,6 +1,6 @@
-#KotlinPattern
+# KotlinPattern
 
-Sorry, I'm not good at English. So there may be a wrong expression. Sorry.
+This library will be obsoleted. I'm making new parser generator
 
 * [what is this](#What-is-this)
 * [how to use](#How-To-Use)
